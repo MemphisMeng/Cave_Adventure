@@ -1,2 +1,2 @@
 # Cave_Adventure
-A typo Program (not complete) that shows my object oriented logics
+The CS591 P1 project for extra credits.
