@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * This class describes the general properties of an adventure at each level.
@@ -7,32 +7,30 @@ import java.util.ArrayList;
  * BU ID U50590533
  *
  */
-public class Adventure {
+public class Adventure implements Task{
 	private int level; // There are 3 different adventures in total.
-	private boolean trick; // True when the trick shows up at random at this stage, otherwise false
 	private boolean slayed = false; // Check the monster whether or not is slayed
 	private boolean found = false; // Check the treasure whether or not is found
-//	private Knight[] knight;
-	private ArrayList<Knight> knight = new ArrayList<Knight>();
-	
-	public static final String[] EVILS = {"Marcel", "Limpian", "DivaDon"};
-	public static final String[] TREASURES = {"sword", "shield", "helmet"};
-	public static final String[] MISSIONS = {"clean up all the cob webs", "turn off the water supply", "perform the poetry of life"};
+	static Knight knight = new Knight();
+	static Narrator narrator = new Narrator();
+
+	// supporting variables
+	static Scanner sc = new Scanner(System.in);
+	static boolean valid_input;
+	static String answer;
 	
 	public Adventure() {
 		
 	}
 	
-	public Adventure(int LEVEL, Knight knight) {
+	public Adventure(int LEVEL, Knight knight, Narrator narrator) {
+		this();
 		this.level = LEVEL;
 		this.knight = knight;
+		this.narrator = narrator;
 	}
 	
-	public void set_level(int l) {
-		this.level = l;
-	}
-	
-	public void set_Slayed() {
+	public void set_slayed() {
 		this.slayed = true;
 	}
 	
@@ -67,11 +65,82 @@ public class Adventure {
 	 * Check whether the knight completes or not the mission		
 	 * @return The symbol whether a knight completes his/her missions in an adventure.
 	 */
-	public boolean Mission_Completed() {
+	public boolean mission_completed() {
 		boolean completed = false;
 		if (slayed == true && found == true) {
 			completed = true;
 		}
 		return completed;
+	}
+
+	@Override
+	public void move() throws Exception{
+		narrator.set_Adventure(this);
+		narrator.opening_question();
+		renew();
+		if (answer.equals("1")) {
+			this.set_slayed(); // The evil awaiting in this adventure  has been slayed
+			narrator.after_killing_monster(); // The question that is set to pop up when the knight successfully kills the monster
+			renew();
+			if (answer.equals("1")) { // The knight forgets to pick the treasure, then game is over.
+				System.out.println("You failed to pick up the treasure, game over!");
+				throw new Exception();
+			}
+			else { // The knight has both killed the monster and collected the treasure, then he/she enters deeper or completes the journey.
+				this.set_found();
+				narrator.after_finding_treasure();
+				if (this.get_level() != 3) {
+					answer = sc.next();
+				}
+			}
+		}
+		else {
+			this.set_found(); // The treasure in this adventure has been picked up.
+			System.out.println("You have picked up the treasure, now go rest before continuing the mission.\n");
+			new Dream();
+			narrator.after_finding_treasure(); // The question that is set to pop up when the knight successfully picks up the treasure
+			renew();
+			if (answer.equals("2")) { // The knight has both killed the monster and collected the treasure, then he/she enters deeper or completes the journey.
+				this.set_slayed();
+				narrator.after_killing_monster();
+				if (this.get_level() != 3) {
+					answer = sc.next();
+				}
+			}
+			else {
+				System.out.println("You failed to kill the enemy, game over!");
+				throw new Exception();
+			}
+		}
+}
+
+	protected static void optionsJudge(String s) {
+		while(!valid_input) {
+			if (s.equals("1") || s.equals("2")) {
+				valid_input = true;
+			}
+			else {
+				System.out.print("Can you say it again, our mighty " + knight.get_Name() + "?");
+				s = sc.next();
+			}
+		}
+	}
+
+	protected static void YesNoJudge(String s) {
+		while(!valid_input) {
+			if (s.equals("y") || s.equals("n")) {
+				valid_input = true;
+			}
+			else {
+				System.out.print("Can you say it again, our mighty " + knight.get_Name() + "?");
+				s = sc.next();
+			}
+		}
+	}
+
+	protected static void renew() {
+		answer = sc.next();
+		valid_input = false;
+		optionsJudge(answer);
 	}
 }
